@@ -25,9 +25,7 @@ export function ClientCard({ client, debtCount, onPress, onEdit, onDelete }: Pro
       {(onEdit || onDelete) && (
         <Card.Actions>
           {onEdit && (
-            <Card.Actions>
-              <Text onPress={onEdit} style={{ color: '#3B82F6' }}>Editar</Text>
-            </Card.Actions>
+            <Text onPress={onEdit} style={{ color: '#3B82F6' }}>Editar</Text>
           )}
           {onDelete && (
             <Text onPress={onDelete} style={{ color: '#EF4444', marginLeft: 8 }}>Excluir</Text>

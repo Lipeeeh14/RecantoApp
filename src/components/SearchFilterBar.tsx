@@ -20,7 +20,6 @@ export function SearchFilterBar({ search, onSearchChange, selectedStatus, onStat
         placeholder="Buscar..."
         value={search}
         onChangeText={onSearchChange}
-        style={styles.search}
       />
       {onStatusChange && (
         <View style={styles.chips}>
@@ -29,7 +28,6 @@ export function SearchFilterBar({ search, onSearchChange, selectedStatus, onStat
               key={status}
               selected={selectedStatus === status}
               onPress={() => onStatusChange(status)}
-              style={styles.chip}
               compact
             >
               {status === 'all' ? 'Todos' : STATUS_LABELS[status]}
@@ -43,7 +41,5 @@ export function SearchFilterBar({ search, onSearchChange, selectedStatus, onStat
 
 const styles = StyleSheet.create({
   container: { gap: 8, marginBottom: 12 },
-  search: {},
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  chip: {},
 });

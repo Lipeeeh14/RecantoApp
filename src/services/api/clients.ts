@@ -1,7 +1,8 @@
 import { Client } from '../../models';
 import { mockClients } from '../mocks/clients';
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL ?? 'http://localhost:3000';
+// BASE_URL will replace mock calls when the real backend is ready, e.g. fetch(`${BASE_URL}/clients`)
+export const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL ?? 'http://localhost:3000';
 
 export interface ClientService {
   getAll(): Promise<Client[]>;
@@ -47,5 +48,3 @@ export const clientService: ClientService = {
     if (index !== -1) mockClients.splice(index, 1);
   },
 };
-
-void BASE_URL; // used when switching to real API

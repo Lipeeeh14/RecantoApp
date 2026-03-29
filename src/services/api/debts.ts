@@ -1,7 +1,8 @@
 import { Debt } from '../../models';
 import { mockDebts } from '../mocks/debts';
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL ?? 'http://localhost:3000';
+// BASE_URL will replace mock calls when the real backend is ready, e.g. fetch(`${BASE_URL}/debts`)
+export const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL ?? 'http://localhost:3000';
 
 export interface DebtService {
   getAll(): Promise<Debt[]>;
@@ -53,5 +54,3 @@ export const debtService: DebtService = {
     return debtService.update(id, { paid: true });
   },
 };
-
-void BASE_URL;

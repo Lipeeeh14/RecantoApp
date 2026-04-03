@@ -3,6 +3,7 @@ import { View, ScrollView, StyleSheet } from 'react-native';
 import { Text, TextInput, Button, Surface, useTheme, IconButton, ActivityIndicator } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useClientStore, useDebtStore } from '../../../src/store';
+import { maskCurrency, parseCurrency, numberToCurrencyDigits, maskDate, parseDate, isoToDisplayDate } from '../../../src/utils';
 
 export default function EditDebtScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -27,8 +28,8 @@ export default function EditDebtScreen() {
     if (debt) {
       setClientId(debt.clientId);
       setDescription(debt.description);
-      setAmount(String(debt.amount));
-      setDueDate(debt.dueDate);
+      setAmount(maskCurrency(numberToCurrencyDigits(debt.amount)));
+      setDueDate(isoToDisplayDate(debt.dueDate));
     }
   }, [debts, id]);
 
@@ -44,8 +45,8 @@ export default function EditDebtScreen() {
     const e: Record<string, string> = {};
     if (!clientId) e.clientId = 'Selecione um cliente.';
     if (!description.trim()) e.description = 'Descrição é obrigatória.';
-    if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) e.amount = 'Valor inválido.';
-    if (!dueDate) e.dueDate = 'Data de vencimento é obrigatória.';
+    if (parseCurrency(amount) <= 0) e.amount = 'Valor inválido.';
+    if (!dueDate || parseDate(dueDate) === null) e.dueDate = 'Data inválida. Use DD/MM/AAAA.';
     return e;
   }
 
@@ -53,7 +54,7 @@ export default function EditDebtScreen() {
     const e = validate();
     if (Object.keys(e).length > 0) { setErrors(e); return; }
     setErrors({});
-    await updateDebt(id, { clientId, description: description.trim(), amount: Number(amount), dueDate });
+    await updateDebt(id, { clientId, description: description.trim(), amount: parseCurrency(amount), dueDate: parseDate(dueDate)! });
     router.back();
   }
 
@@ -83,10 +84,10 @@ export default function EditDebtScreen() {
         <TextInput label="Descrição *" value={description} onChangeText={setDescription} style={styles.input} error={!!errors.description} />
         {!!errors.description && <Text style={styles.error}>{errors.description}</Text>}
 
-        <TextInput label="Valor (R$) *" value={amount} onChangeText={setAmount} style={styles.input} keyboardType="numeric" error={!!errors.amount} />
+        <TextInput label="Valor (R$) *" value={amount} onChangeText={(v) => setAmount(maskCurrency(v))} style={styles.input} keyboardType="numeric" error={!!errors.amount} />
         {!!errors.amount && <Text style={styles.error}>{errors.amount}</Text>}
 
-        <TextInput label="Vencimento (AAAA-MM-DD) *" value={dueDate} onChangeText={setDueDate} style={styles.input} error={!!errors.dueDate} />
+        <TextInput label="Vencimento (DD/MM/AAAA) *" value={dueDate} onChangeText={(v) => setDueDate(maskDate(v))} style={styles.input} keyboardType="numeric" error={!!errors.dueDate} />
         {!!errors.dueDate && <Text style={styles.error}>{errors.dueDate}</Text>}
 
         <Button mode="contained" onPress={handleSave} loading={loading} style={styles.btn}>

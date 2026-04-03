@@ -3,6 +3,7 @@ import { View, ScrollView, StyleSheet } from 'react-native';
 import { Text, TextInput, Button, Surface, useTheme, IconButton, ActivityIndicator } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useClientStore } from '../../../src/store';
+import { maskPhone, isValidEmail } from '../../../src/utils';
 
 export default function EditClientScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -15,6 +16,7 @@ export default function EditClientScreen() {
   const [email, setEmail] = useState('');
   const [notes, setNotes] = useState('');
   const [error, setError] = useState('');
+  const [emailError, setEmailError] = useState('');
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -25,7 +27,7 @@ export default function EditClientScreen() {
     const client = clients.find((c) => c.id === id);
     if (client) {
       setName(client.name);
-      setPhone(client.phone ?? '');
+      setPhone(maskPhone(client.phone ?? ''));
       setEmail(client.email ?? '');
       setNotes(client.notes ?? '');
     }
@@ -40,11 +42,20 @@ export default function EditClientScreen() {
   }
 
   async function handleSave() {
+    let hasError = false;
     if (!name.trim()) {
       setError('Nome é obrigatório.');
-      return;
+      hasError = true;
+    } else {
+      setError('');
     }
-    setError('');
+    if (email.trim() && !isValidEmail(email.trim())) {
+      setEmailError('E-mail inválido.');
+      hasError = true;
+    } else {
+      setEmailError('');
+    }
+    if (hasError) return;
     await updateClient(id, { name: name.trim(), phone: phone.trim() || undefined, email: email.trim() || undefined, notes: notes.trim() || undefined });
     router.back();
   }
@@ -60,8 +71,9 @@ export default function EditClientScreen() {
 
         <TextInput label="Nome *" value={name} onChangeText={setName} style={styles.input} error={!!error} />
         {!!error && <Text style={styles.error}>{error}</Text>}
-        <TextInput label="Telefone" value={phone} onChangeText={setPhone} style={styles.input} keyboardType="phone-pad" />
-        <TextInput label="E-mail" value={email} onChangeText={setEmail} style={styles.input} keyboardType="email-address" autoCapitalize="none" />
+        <TextInput label="Telefone" value={phone} onChangeText={(v) => setPhone(maskPhone(v))} style={styles.input} keyboardType="phone-pad" />
+        <TextInput label="E-mail" value={email} onChangeText={(v) => { setEmail(v); setEmailError(''); }} style={styles.input} keyboardType="email-address" autoCapitalize="none" error={!!emailError} />
+        {!!emailError && <Text style={styles.error}>{emailError}</Text>}
         <TextInput label="Observações" value={notes} onChangeText={setNotes} style={styles.input} multiline numberOfLines={3} />
 
         <Button mode="contained" onPress={handleSave} loading={loading} style={styles.btn}>

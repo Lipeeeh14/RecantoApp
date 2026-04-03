@@ -3,7 +3,7 @@ import { View, ScrollView, StyleSheet } from 'react-native';
 import { Text, TextInput, Button, Surface, useTheme, IconButton } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useClientStore, useDebtStore } from '../../src/store';
-import { toISODateString } from '../../src/utils';
+import { toISODateString, maskCurrency, parseCurrency, maskDate, parseDate, isoToDisplayDate } from '../../src/utils';
 
 export default function NewDebtScreen() {
   const { clientId: preselectedClientId } = useLocalSearchParams<{ clientId?: string }>();
@@ -15,7 +15,7 @@ export default function NewDebtScreen() {
   const [clientId, setClientId] = useState(preselectedClientId ?? '');
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
-  const [dueDate, setDueDate] = useState(toISODateString());
+  const [dueDate, setDueDate] = useState(isoToDisplayDate(toISODateString()));
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -26,8 +26,8 @@ export default function NewDebtScreen() {
     const e: Record<string, string> = {};
     if (!clientId) e.clientId = 'Selecione um cliente.';
     if (!description.trim()) e.description = 'Descrição é obrigatória.';
-    if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) e.amount = 'Valor inválido.';
-    if (!dueDate) e.dueDate = 'Data de vencimento é obrigatória.';
+    if (parseCurrency(amount) <= 0) e.amount = 'Valor inválido.';
+    if (!dueDate || parseDate(dueDate) === null) e.dueDate = 'Data inválida. Use DD/MM/AAAA.';
     return e;
   }
 
@@ -35,7 +35,7 @@ export default function NewDebtScreen() {
     const e = validate();
     if (Object.keys(e).length > 0) { setErrors(e); return; }
     setErrors({});
-    await addDebt({ clientId, description: description.trim(), amount: Number(amount), dueDate, paid: false });
+    await addDebt({ clientId, description: description.trim(), amount: parseCurrency(amount), dueDate: parseDate(dueDate)!, paid: false });
     router.back();
   }
 
@@ -65,10 +65,10 @@ export default function NewDebtScreen() {
         <TextInput label="Descrição *" value={description} onChangeText={setDescription} style={styles.input} error={!!errors.description} />
         {!!errors.description && <Text style={styles.error}>{errors.description}</Text>}
 
-        <TextInput label="Valor (R$) *" value={amount} onChangeText={setAmount} style={styles.input} keyboardType="numeric" error={!!errors.amount} />
+        <TextInput label="Valor (R$) *" value={amount} onChangeText={(v) => setAmount(maskCurrency(v))} style={styles.input} keyboardType="numeric" error={!!errors.amount} />
         {!!errors.amount && <Text style={styles.error}>{errors.amount}</Text>}
 
-        <TextInput label="Vencimento (AAAA-MM-DD) *" value={dueDate} onChangeText={setDueDate} style={styles.input} error={!!errors.dueDate} />
+        <TextInput label="Vencimento (DD/MM/AAAA) *" value={dueDate} onChangeText={(v) => setDueDate(maskDate(v))} style={styles.input} keyboardType="numeric" error={!!errors.dueDate} />
         {!!errors.dueDate && <Text style={styles.error}>{errors.dueDate}</Text>}
 
         <Button mode="contained" onPress={handleSave} loading={loading} style={styles.btn}>

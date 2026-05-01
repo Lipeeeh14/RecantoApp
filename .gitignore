@@ -1,23 +1,26 @@
+# Dependências
 node_modules/
+
+# Expo
 .expo/
-dist/
-.env
-*.orig.*
 web-build/
+dist/
 
-# macOS
-.DS_Store
+# Variáveis de ambiente
+.env
 
-# iOS
+# Android / iOS
 ios/Pods/
-
-# Android
 android/app/build/
 
 # Logs
 *.log
 npm-debug.log*
 yarn-debug.log*
+
+# macOS
+.DS_Store
+*.orig.*
 yarn-error.log*
 
 # @generated expo-cli sync-2b81b286409207a5da26e14c78851eb30d8ccbdb
